@@ -6,8 +6,6 @@ BINARY ?= docker-lvm-plugin
 MANINSTALLDIR?= ${DESTDIR}/usr/share/man
 BINDIR ?=$(DESTDIR)/usr/libexec/docker
 
-export GO15VENDOREXPERIMENT=1
-
 all: man lvm-plugin-build
 
 .PHONY: man
