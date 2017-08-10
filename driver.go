@@ -142,9 +142,9 @@ func (l *lvmDriver) Create(req volume.Request) volume.Response {
 			device = luksDevice(req.Name)
 		}
 
-		cmd = exec.Command("mkfs.xfs", device)
+		cmd = exec.Command("mkfs.ext4", device)
 		if out, err := cmd.CombinedOutput(); err != nil {
-			l.logger.Err(fmt.Sprintf("Create: mkfs.xfs error: %s output %s", err, string(out)))
+			l.logger.Err(fmt.Sprintf("Create: mkfs.ext4 error: %s output %s", err, string(out)))
 			return resp(fmt.Errorf("Error partitioning volume"))
 		}
 
@@ -319,7 +319,13 @@ func (l *lvmDriver) Mount(req volume.MountRequest) volume.Response {
 	if err := saveToDisk(l.volumes, l.count); err != nil {
 		return resp(err)
 	}
-	return resp(getMountpoint(l.home, req.Name))
+	mp := getDataMountpoint(l.home, req.Name)
+	err = os.MkdirAll(mp, 0700)
+	if err != nil {
+		return resp(err)
+	}
+
+	return resp(getDataMountpoint(l.home, req.Name))
 }
 
 func (l *lvmDriver) Unmount(req volume.UnmountRequest) volume.Response {

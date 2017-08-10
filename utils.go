@@ -63,6 +63,10 @@ func getMountpoint(home, name string) string {
 	return path.Join(home, name)
 }
 
+func getDataMountpoint(home, name string) string {
+	return path.Join(home, name, "_data")
+}
+
 func saveToDisk(volumes map[string]*vol, count map[string]int) error {
 	// Save volume store metadata.
 	fhVolumes, err := os.Create(lvmVolumesConfigPath)
