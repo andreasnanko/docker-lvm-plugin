@@ -279,6 +279,10 @@ func (l *lvmDriver) Mount(req volume.MountRequest) volume.Response {
 		return false, ""
 	}()
 
+	if !isMounted(getMountpoint(l.home, req.Name)) {
+		l.count[req.Name] = 0
+	}
+	
 	if l.count[req.Name] == 0 {
 		device := logicalDevice(vgName, req.Name)
 
