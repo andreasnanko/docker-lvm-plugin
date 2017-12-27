@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"sync"
+  "strings"
+  "path"
 
 	"github.com/docker/go-plugins-helpers/volume"
 )
@@ -156,7 +158,7 @@ func (l *lvmDriver) Create(req volume.Request) volume.Response {
 		}
 	}
 
-	mp := getMountpoint(l.home, req.Name)
+	mp := path.Clean(strings.TrimSuffix(getMountpoint(l.home, req.Name), "_data"))
 	err = os.MkdirAll(mp, 0700)
 	if err != nil {
 		return resp(err)
@@ -239,7 +241,7 @@ func (l *lvmDriver) Remove(req volume.Request) volume.Response {
 		return resp(fmt.Errorf("Error removing volume, all snapshot destinations must be removed before removing the original volume"))
 	}
 
-	if err := os.RemoveAll(getMountpoint(l.home, req.Name)); err != nil {
+	if err := os.RemoveAll(path.Clean(strings.TrimSuffix(getMountpoint(l.home, req.Name), "_data"))); err != nil {
 		return resp(err)
 	}
 
@@ -309,7 +311,7 @@ func (l *lvmDriver) Mount(req volume.MountRequest) volume.Response {
 			device = luksDevice(req.Name)
 		}
 
-		mountArgs := []string{device, getMountpoint(l.home, req.Name)}
+		mountArgs := []string{device, path.Clean(strings.TrimSuffix(getMountpoint(l.home, req.Name), "_data"))}
 		if isSnap {
 			mountArgs = append([]string{"-o", "nouuid"}, mountArgs...)
 		}
@@ -323,20 +325,20 @@ func (l *lvmDriver) Mount(req volume.MountRequest) volume.Response {
 	if err := saveToDisk(l.volumes, l.count); err != nil {
 		return resp(err)
 	}
-	mp := getDataMountpoint(l.home, req.Name)
+	mp := getMountpoint(l.home, req.Name)
 	err = os.MkdirAll(mp, 0700)
 	if err != nil {
 		return resp(err)
 	}
 
-	return resp(getDataMountpoint(l.home, req.Name))
+	return resp(getMountpoint(l.home, req.Name))
 }
 
 func (l *lvmDriver) Unmount(req volume.UnmountRequest) volume.Response {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if l.count[req.Name] == 1 {
-		cmd := exec.Command("umount", getMountpoint(l.home, req.Name))
+		cmd := exec.Command("umount", path.Clean(strings.TrimSuffix(getMountpoint(l.home, req.Name), "_data")))
 		if out, err := cmd.CombinedOutput(); err != nil {
 			l.logger.Err(fmt.Sprintf("Unmount: unmount error: %s output %s", err, string(out)))
 			return resp(fmt.Errorf("error unmounting volume"))
