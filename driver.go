@@ -315,6 +315,7 @@ func (l *lvmDriver) Mount(req volume.MountRequest) volume.Response {
 		if isSnap {
 			mountArgs = append([]string{"-o", "nouuid"}, mountArgs...)
 		}
+		mountArgs = append([]string{"-o", "noatime"}, mountArgs...)
 		cmd := exec.Command("mount", mountArgs...)
 		if out, err := cmd.CombinedOutput(); err != nil {
 			l.logger.Err(fmt.Sprintf("Mount: mount error: %s output %s", err, string(out)))
