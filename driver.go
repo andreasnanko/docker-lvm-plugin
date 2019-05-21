@@ -203,19 +203,15 @@ func (l *lvmDriver) List(req volume.Request) volume.Response {
 
 func (l *lvmDriver) Get(req volume.Request) volume.Response {
 	status := make(map[string]interface{})
-	vgName, err := getVolumegroupName(l.vgConfig)
-	if err != nil {
-		return resp(err)
-	}
-	out, _ := exec.Command("lvdisplay", "-C", "--noheadings", fmt.Sprintf("/dev/%s/%s", vgName, req.Name)).Output()
-	status["lvm"] = strings.TrimRight(strings.TrimLeft(strings.TrimSuffix(string(out), "\n"), "! "), "! ")
-
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	v, exists := l.volumes[req.Name]
 	if !exists {
 		return resp(fmt.Errorf("No such volume"))
 	}
+
+	out, _ := exec.Command("df", v.MountPoint, "--output=size,used").Output()
+	status["volume_info"] = strings.Fields(strings.TrimLeft(strings.Split(string(out), "\n")[1], "! "))
 	var res volume.Response
 	res.Volume = &volume.Volume{
 		Name:       v.Name,
