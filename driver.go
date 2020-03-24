@@ -210,8 +210,15 @@ func (l *lvmDriver) Get(req volume.Request) volume.Response {
 		return resp(fmt.Errorf("No such volume"))
 	}
 
-	out, _ := exec.Command("df", v.MountPoint, "--output=size,used").Output()
-	status["volume_info"] = strings.Fields(strings.TrimLeft(strings.Split(string(out), "\n")[1], "! "))
+	vgName, err := getVolumegroupName(l.vgConfig)
+	if err != nil {
+		return resp(err)
+	}
+	size, _ := exec.Command("lvdisplay", "--units", "G", "-o", "LVSize", "-C", "--noheadings", fmt.Sprintf("/dev/%s/%s", vgName, req.Name)).Output()
+	usage, _ := exec.Command("df", v.MountPoint, "--output=used").Output()
+	status["volume_size"] = strings.TrimLeft(strings.TrimSuffix(string(size), "\n"), "! ")
+	status["volume_usage"] = strings.TrimLeft(strings.Split(string(usage), "\n")[1], "! ")
+
 	var res volume.Response
 	res.Volume = &volume.Volume{
 		Name:       v.Name,
