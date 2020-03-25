@@ -214,7 +214,7 @@ func (l *lvmDriver) Get(req volume.Request) volume.Response {
 	if err != nil {
 		return resp(err)
 	}
-	size, _ := exec.Command("lvdisplay", "--units", "G", "-o", "LVSize", "-C", "--noheadings", fmt.Sprintf("/dev/%s/%s", vgName, req.Name)).Output()
+	size, _ := exec.Command("lvdisplay", "--units", "g", "-o", "LVSize", "-C", "--noheadings", fmt.Sprintf("/dev/%s/%s", vgName, req.Name)).Output()
 	usage, _ := exec.Command("df", v.MountPoint, "--output=used").Output()
 	status["volume_size"] = strings.TrimLeft(strings.TrimSuffix(string(size), "\n"), "! ")
 	status["volume_usage"] = strings.TrimLeft(strings.Split(string(usage), "\n")[1], "! ")
