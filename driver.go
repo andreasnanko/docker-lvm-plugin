@@ -295,6 +295,8 @@ func (l *lvmDriver) Mount(req volume.MountRequest) volume.Response {
 
 	if !isMounted(getMountpoint(l.home, req.Name)) {
 		l.count[req.Name] = 0
+	} else {
+		return resp(getMountpoint(l.home, req.Name))
 	}
 
 	if l.count[req.Name] == 0 {

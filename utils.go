@@ -65,7 +65,7 @@ func getMountpoint(home, name string) string {
 
 func isMounted(mountPoint string) bool {
   mountPoint = path.Clean(strings.TrimSuffix(mountPoint, "_data"))
-	_, ret := exec.Command("sh", "-c", "mountpoint -q", mountPoint).Output()
+	_, ret := exec.Command("/bin/mountpoint", "-q", mountPoint).Output()
 	if (ret == nil) {
    return true
 	}
